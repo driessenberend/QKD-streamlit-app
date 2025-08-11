@@ -183,7 +183,7 @@ with st.sidebar:
 result = run_bb84(n_qubits, eve_enabled, noise, seed)
 
 # Tabs: 1) BB84 stap-voor-stap 2) Prestatie/QBER 3) Qiskit-circuit
-	tab1, tab2, tab3 = st.tabs([
+tab1, tab2, tab3 = st.tabs([
     "1) BB84-simulator",
     "2) Prestatie & QBER",
     "3) Live Qiskit-circuits",
