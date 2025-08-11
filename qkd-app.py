@@ -183,7 +183,7 @@ with st.sidebar:
 result = run_bb84(n_qubits, eve_enabled, noise, seed)
 
 # Tabs: 1) BB84 stap-voor-stap 2) Prestatie/QBER 3) Qiskit-circuit
-tab1, tab2, tab3 = st.tabs([
+	tab1, tab2, tab3 = st.tabs([
     "1) BB84-simulator",
     "2) Prestatie & QBER",
     "3) Live Qiskit-circuits",
@@ -263,7 +263,17 @@ with tab3:
             st.error("Kon circuit niet bouwen.")
         else:
             st.write("**Circuitvoorbeeld (eerste 8 qubits):**")
-            st.pyplot(circuit_drawer(qc, output='mpl', fold=-1))
+            try:
+                fig = circuit_drawer(qc, output='mpl', fold=-1)
+                st.pyplot(fig)
+            except MissingOptionalLibraryError:
+                st.warning(
+                    "Matplotlib-visualisatie van Qiskit is niet beschikbaar op deze omgeving. Vallen terug op tekstweergave.\n\nTip: voeg 'matplotlib' toe (en pin een versie) in requirements.txt of pin een ondersteunde Python-versie met runtime.txt."
+                )
+                st.text(qc.draw(output='text'))
+            except Exception as e:
+                st.error(f"Kon het circuit niet tekenen: {type(e).__name__}")
+                st.text(qc.draw(output='text'))
             if st.button("Run op AerSimulator (1024 shots)"):
                 counts = run_aer(qc, shots=1024)
                 st.write("Resultaat (counts):", counts)
