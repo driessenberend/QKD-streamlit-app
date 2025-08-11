@@ -1,10 +1,9 @@
 streamlit==1.37.0
-numpy==1.26.4
-pandas==2.2.2
-matplotlib==3.8.4
+numpy==1.24.4
+pandas==2.1.4
+matplotlib==3.8.0
 qiskit==1.2.4
 qiskit-aer==0.14.2
-pillow==10.3.0
-# Optioneel, soms nodig voor bepaalde tekenpaden:
+pillow==10.1.0
 pylatexenc==2.10
 pydot==1.4.2
