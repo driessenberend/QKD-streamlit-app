@@ -13,6 +13,18 @@ try:
 except Exception:
     QISKIT_AVAILABLE = False
 
+# Optional visualization deps
+try:
+    import matplotlib  # noqa: F401
+    MATPLOTLIB_AVAILABLE = True
+except Exception:
+    MATPLOTLIB_AVAILABLE = False
+try:
+    import pylatexenc  # noqa: F401
+    PYLATEXENC_AVAILABLE = True
+except Exception:
+    PYLATEXENC_AVAILABLE = False
+
 
 def randbits(n, rng):
     return rng.integers(0, 2, size=n, dtype=np.int8)
@@ -95,6 +107,12 @@ with st.sidebar:
     eve_enabled = st.toggle("Voeg Eve (afluisteren) toe", value=False)
     noise = st.slider("Kanaalruis (bitflip-probabiliteit)", 0.0, 0.2, 0.02, step=0.01)
     seed = st.number_input("Random seed", min_value=0, value=42, step=1)
+    st.markdown("---")
+    render_mode = st.selectbox(
+        "Circuit weergave",
+        ["Automatisch", "Matplotlib", "Tekst"],
+        help="Kies 'Tekst' als Matplotlib/pylatexenc problemen geeft op Streamlit Cloud."
+    )
 
 result = run_bb84(n_qubits, eve_enabled, noise, seed)
 
@@ -123,9 +141,24 @@ with tab3:
     else:
         qc = bb84_circuit_sample(result.alice_bits, result.alice_bases, result.bob_bases, sample_size=8)
         if qc:
-            try:
-                fig = circuit_drawer(qc, output='mpl', fold=-1)
-                st.pyplot(fig)
-            except MissingOptionalLibraryError:
-                st.warning("Matplotlib drawer ontbreekt. Installeer 'matplotlib', 'pillow', 'pylatexenc'.")
+            # Bepaal of we Matplotlib mogen gebruiken
+            want_mpl = (render_mode == "Matplotlib") or (
+                render_mode == "Automatisch" and MATPLOTLIB_AVAILABLE and PYLATEXENC_AVAILABLE
+            )
+            if want_mpl and MATPLOTLIB_AVAILABLE and PYLATEXENC_AVAILABLE:
+                try:
+                    fig = circuit_drawer(qc, output='mpl', fold=-1)
+                    st.pyplot(fig)
+                except MissingOptionalLibraryError as e:
+                    st.warning(
+                        "Matplotlib drawer niet beschikbaar: " + str(e) +
+                        "\nVal terug op tekstweergave. Voeg 'matplotlib' en 'pylatexenc' toe aan requirements.txt of pin Python 3.11 met runtime.txt."
+                    )
+                    st.text(qc.draw(output='text'))
+                except Exception as e:
+                    st.error(f"Kon het circuit niet tekenen ({type(e).__name__}). Vallen terug op tekst.")
+                    st.text(qc.draw(output='text'))
+            else:
+                if render_mode == "Matplotlib" and (not MATPLOTLIB_AVAILABLE or not PYLATEXENC_AVAILABLE):
+                    st.info("Matplotlib/pylatexenc niet gevonden. Toon tekstdiagram i.p.v. figuur.")
                 st.text(qc.draw(output='text'))
